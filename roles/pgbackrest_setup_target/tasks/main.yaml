@@ -9,12 +9,25 @@
   run_once: yes
   become: yes
 
-- name: Configure SSH client to automatically accept new host keys
+- name: Ensure known_hosts file exists with correct permissions
+  copy:
+    content: ""
+    dest: /var/lib/postgresql/.ssh/known_hosts
+    owner: postgres
+    group: postgres
+    mode: '0600'
+    force: no
+  delegate_to: "{{ groups['repo_db_backups'][0] }}"
+  run_once: yes
+  become: yes
+
+- name: Configure SSH client to automatically accept and bypass key prompts
   copy:
     content: |
       Host *
-          StrictHostKeyChecking accept-new
+          StrictHostKeyChecking no
           UserKnownHostsFile /var/lib/postgresql/.ssh/known_hosts
+          LogLevel ERROR
     dest: /var/lib/postgresql/.ssh/config
     owner: postgres
     group: postgres
@@ -22,7 +35,7 @@
   delegate_to: "{{ groups['repo_db_backups'][0] }}"
   run_once: yes
   become: yes
-
+  
 - name: Initialize pgBackRest backup stanza
   command: pgbackrest --stanza=db --log-level-console=info stanza-create
   become: yes
