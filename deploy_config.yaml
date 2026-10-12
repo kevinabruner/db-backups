@@ -1,5 +1,5 @@
 - name: Install pgBackRest packages across all infrastructure
-  hosts: env_dev:&repo_psql:!role_vm_template, repo_db_backups:!role_vm_template
+  hosts: "env_dev:&repo_psql:!role_vm_template, repo_db_backups:!role_vm_template"
   become: yes
   roles:
     - backup_packages
