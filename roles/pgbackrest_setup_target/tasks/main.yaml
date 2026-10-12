@@ -10,27 +10,35 @@
   become: yes
 
 - name: Add database hostnames to repository known_hosts
-  known_hosts:
-    name: "{{ item }}"
-    key: "{{ lookup('pipe', 'ssh-keyscan -T 10 ' + item) }}"
-    path: "/var/lib/postgresql/.ssh/known_hosts"
-    state: present
+  shell: |
+    key=$(ssh-keyscan -T 10 "{{ item }}" 2>/dev/null | grep -v '^#')
+    if [ -n "$key" ]; then
+      ssh-keygen -R "{{ item }}" -f /var/lib/postgresql/.ssh/known_hosts 2>/dev/null || true
+      echo "$key" >> /var/lib/postgresql/.ssh/known_hosts
+    fi
+  args:
+    executable: /bin/bash
   delegate_to: "{{ groups['repo_db_backups'][0] }}"
   loop: "{{ groups['repo_psql'] | difference(groups['role_vm_template'] | default([])) }}"
   become: yes
   become_user: postgres
+  changed_when: true
 
 - name: Add database IP addresses to repository known_hosts
-  known_hosts:
-    name: "{{ hostvars[item].ansible_host }}"
-    key: "{{ lookup('pipe', 'ssh-keyscan -T 10 ' + hostvars[item].ansible_host) }}"
-    path: "/var/lib/postgresql/.ssh/known_hosts"
-    state: present
+  shell: |
+    key=$(ssh-keyscan -T 10 "{{ hostvars[item].ansible_host }}" 2>/dev/null | grep -v '^#')
+    if [ -n "$key" ]; then
+      ssh-keygen -R "{{ hostvars[item].ansible_host }}" -f /var/lib/postgresql/.ssh/known_hosts 2>/dev/null || true
+      echo "$key" >> /var/lib/postgresql/.ssh/known_hosts
+    fi
+  args:
+    executable: /bin/bash
   delegate_to: "{{ groups['repo_db_backups'][0] }}"
   loop: "{{ groups['repo_psql'] | difference(groups['role_vm_template'] | default([])) }}"
   when: hostvars[item].ansible_host is defined
   become: yes
   become_user: postgres
+  changed_when: true
 
 - name: Initialize pgBackRest backup stanza
   command: pgbackrest --stanza=db --log-level-console=info stanza-create
