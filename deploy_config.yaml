@@ -9,11 +9,12 @@
   become: yes
   roles:    
     - backup_sshkeys
-    - pgbackrest_setup_dbs
+    - pgbackrest_setup_config
 
 - name: Configure pgBackRest repository host
   hosts: repo_db_backups:!role_vm_template
   become: yes
   roles:    
     - backup_sshkeys
+    - pgbackrest_setup_config
     - pgbackrest_setup_target

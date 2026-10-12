@@ -6,16 +6,14 @@
     group: postgres
     mode: '0750'
 
-- name: Read database node public keys
-  slurp:
-    src: ~postgres/.ssh/id_rsa.pub
-  register: db_pubkeys
-  delegate_to: "{{ item }}"
-  loop: "{{ ansible_play_hosts }}"
-
-- name: Authorize database node keys on backup VM
-  authorized_key:
-    user: postgres
-    key: "{{ item.ansible_facts.slurp_content | default(item['content']) | b64decode }}"
-  delegate_to: db-backups
-  loop: "{{ db_pubkeys.results }}"
+- name: Initialize pgBackRest backup stanza
+  command: pgbackrest --stanza=demo --log-level-console=info stanza-create
+  become: yes
+  become_user: postgres
+  run_once: yes
+  delegate_to: "{{ groups['repo_db_backups'][0] }}"
+  register: stanza_create
+  failed_when: 
+    - stanza_create.rc != 0
+    - "'stanza already exists' not in stanza_create.stderr"
+  changed_when: stanza_create.rc == 0

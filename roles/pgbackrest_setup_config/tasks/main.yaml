@@ -1,0 +1,7 @@
+- name: Deploy pgbackrest.conf to repository host
+  template:
+    src: pgbackrest.conf.j2
+    dest: /etc/pgbackrest.conf
+    owner: postgres
+    group: postgres
+    mode: '0640'
