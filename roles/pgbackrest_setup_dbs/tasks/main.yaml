@@ -31,7 +31,7 @@
 - block:
     - name: Read backup repository public key
       slurp:
-        src: "{{ hostvars[groups['repo_db_backups'][0]]['ansible_facts']['getent_passwd']['postgres'][4] }}/.ssh/id_rsa.pub"
+        src: /var/lib/postgresql/.ssh/id_rsa.pub
       register: backup_repo_pubkey
       delegate_to: "{{ groups['repo_db_backups'][0] }}"
       run_once: yes
