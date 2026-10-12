@@ -1,3 +1,11 @@
+- name: Ensure pgBackRest configuration directory exists
+  file:
+    path: /etc/pgbackrest
+    state: directory
+    owner: postgres
+    group: postgres
+    mode: '0750'
+    
 - name: Deploy pgbackrest configuration
   template:
     src: templates/pgbackrest.conf.j2
