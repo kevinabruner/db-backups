@@ -15,7 +15,7 @@
 
 - name: Deploy shared private key to all nodes
   copy:
-    content: "{{ shared_private_key['content'] | b64decode }}"
+    content: "{{ hostvars['localhost']['shared_private_key']['content'] | b64decode }}"
     dest: /var/lib/postgresql/.ssh/id_rsa
     owner: postgres
     group: postgres
@@ -23,7 +23,7 @@
 
 - name: Deploy shared public key to all nodes
   copy:
-    content: "{{ shared_public_key['content'] | b64decode }}"
+    content: "{{ hostvars['localhost']['shared_public_key']['content'] | b64decode }}"
     dest: /var/lib/postgresql/.ssh/id_rsa.pub
     owner: postgres
     group: postgres
@@ -32,5 +32,5 @@
 - name: Authorize shared public key locally on all nodes
   authorized_key:
     user: postgres
-    key: "{{ shared_public_key['content'] | b64decode }}"
+    key: "{{ hostvars['localhost']['shared_public_key']['content'] | b64decode }}"
     state: present
