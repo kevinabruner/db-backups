@@ -5,7 +5,7 @@
     - backup_packages
 
 - name: Configure pgBackRest repository host
-  hosts: repo_db_backup:!role_vm_template
+  hosts: repo_db_backups:!role_vm_template
   become: yes
   roles:
     - pgbackrest_setup_target
