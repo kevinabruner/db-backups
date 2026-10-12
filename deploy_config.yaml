@@ -2,7 +2,7 @@
   hosts: localhost
   become: yes
   roles:
-    local_keygen
+    - local_keygen
 
 - name: Configure pgBackRest on database nodes
   hosts: env_dev:&repo_psql:!role_vm_template
