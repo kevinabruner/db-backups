@@ -1,29 +1,67 @@
-- name: Ensure pgBackRest configuration directory exists
+- name: Ensure postgres user exists on target hosts
+  user:
+    name: postgres
+    system: yes
+    shell: /bin/bash
+    create_home: yes
+
+- name: Ensure .ssh directory exists for postgres
   file:
-    path: /etc/pgbackrest
+    path: /var/lib/postgresql/.ssh
     state: directory
     owner: postgres
     group: postgres
-    mode: '0750'
-    
-- name: Deploy pgbackrest configuration
-  template:
-    src: templates/pgbackrest.conf.j2
-    dest: /etc/pgbackrest/pgbackrest.conf
-    owner: postgres
-    group: postgres
-    mode: '0640'
+    mode: '0700'
 
-- name: Read backup repository public key
-  slurp:
-    src: ~postgres/.ssh/id_rsa.pub
-  register: backup_repo_pubkey
-  delegate_to: db-backups
+# --- Run once on controller to generate the shared key ---
+- name: Ensure local temp directory exists for key generation
+  file:
+    path: /tmp/pgbackrest_keys
+    state: directory
+  delegate_to: localhost
   run_once: yes
 
-- name: Authorize backup VM key on database nodes
+- name: Generate shared SSH key pair on Ansible controller
+  openssh_keypair:
+    path: /tmp/pgbackrest_keys/id_rsa
+    type: rsa
+    size: 4096
+  delegate_to: localhost
+  run_once: yes
+
+- name: Read shared private key content
+  slurp:
+    src: /tmp/pgbackrest_keys/id_rsa
+  delegate_to: localhost
+  run_once: yes
+  register: shared_private_key
+
+- name: Read shared public key content
+  slurp:
+    src: /tmp/pgbackrest_keys/id_rsa.pub
+  delegate_to: localhost
+  run_once: yes
+  register: shared_public_key
+
+# --- Deploy to all target nodes ---
+- name: Deploy shared private key to all nodes
+  copy:
+    content: "{{ shared_private_key['content'] | b64decode }}"
+    dest: /var/lib/postgresql/.ssh/id_rsa
+    owner: postgres
+    group: postgres
+    mode: '0600'
+
+- name: Deploy shared public key to all nodes
+  copy:
+    content: "{{ shared_public_key['content'] | b64decode }}"
+    dest: /var/lib/postgresql/.ssh/id_rsa.pub
+    owner: postgres
+    group: postgres
+    mode: '0644'
+
+- name: Authorize shared public key locally on all nodes
   authorized_key:
     user: postgres
-    key: "{{ backup_repo_pubkey['content'] | b64decode }}"
-  delegate_to: "{{ item }}"
-  loop: "{{ ansible_play_hosts }}"
+    key: "{{ shared_public_key['content'] | b64decode }}"
+    state: present
