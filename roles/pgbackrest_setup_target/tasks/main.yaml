@@ -9,19 +9,6 @@
   run_once: yes
   become: yes
 
-- name: Configure SSH client settings for postgres user
-  copy:
-    content: |
-      Host 192.168.*.*
-          HashKnownHosts no
-          StrictHostKeyChecking accept-new
-    dest: /var/lib/postgresql/.ssh/config
-    owner: postgres
-    group: postgres
-    mode: '0600'
-  delegate_to: "{{ groups['repo_db_backups'][0] }}"
-  become: yes
-
 - name: Add database hostnames to repository known_hosts
   shell: |
     key=$(ssh-keyscan -T 10 "{{ item }}" 2>/dev/null | grep -v '^#')
@@ -35,6 +22,8 @@
   loop: "{{ groups['repo_psql'] | difference(groups['role_vm_template'] | default([])) }}"
   become: yes
   become_user: postgres
+  environment:
+    HOME: /var/lib/postgresql
   changed_when: true
 
 - name: Add database IP addresses to repository known_hosts
@@ -51,12 +40,16 @@
   when: hostvars[item].ansible_host is defined
   become: yes
   become_user: postgres
+  environment:
+    HOME: /var/lib/postgresql
   changed_when: true
 
 - name: Initialize pgBackRest backup stanza
   command: pgbackrest --stanza=db --log-level-console=info stanza-create
   become: yes
   become_user: postgres
+  environment:
+    HOME: /var/lib/postgresql
   run_once: yes
   delegate_to: "{{ groups['repo_db_backups'][0] }}"
   register: stanza_create
