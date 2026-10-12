@@ -26,4 +26,4 @@
     user: postgres
     key: "{{ backup_repo_pubkey['content'] | b64decode }}"
   delegate_to: "{{ item }}"
-  loop: "{{ ansible_play_hosts }}
+  loop: "{{ ansible_play_hosts }}"
