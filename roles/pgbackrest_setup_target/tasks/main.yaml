@@ -1,3 +1,10 @@
+- name: Ensure postgres user exists
+  user:
+    name: postgres
+    system: yes
+    shell: /bin/bash
+    create_home: yes
+    
 - name: Create repository directory
   file:
     path: /var/lib/pgbackrest
