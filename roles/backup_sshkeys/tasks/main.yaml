@@ -7,7 +7,7 @@
 
 - name: Ensure .ssh directory exists for postgres
   file:
-    path: ~postgres/.ssh
+    path: /home/postgres/.ssh
     state: directory
     owner: postgres
     group: postgres
@@ -15,7 +15,7 @@
 
 - name: Generate SSH key pair for postgres
   openssh_keypair:
-    path: ~postgres/.ssh/id_rsa
+    path: /home/postgres/.ssh/id_rsa
     type: rsa
     size: 4096
     owner: postgres
