@@ -1,10 +1,13 @@
-- name: Create repository directory
+- name: Ensure postgres user .ssh directory exists with correct permissions
   file:
-    path: /var/lib/pgbackrest
+    path: /var/lib/postgresql/.ssh
     state: directory
     owner: postgres
     group: postgres
-    mode: '0750'
+    mode: '0700'
+  delegate_to: "{{ groups['repo_db_backups'][0] }}"
+  run_once: yes
+  become: yes
 
 - name: Scan and add both IP and hostname host keys to repository known_hosts
   known_hosts:
