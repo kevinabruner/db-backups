@@ -9,16 +9,20 @@
   run_once: yes
   become: yes
 
-- name: Scan and add both IP and hostname host keys to repository known_hosts
+- name: Scan and add database host keys to repository known_hosts
   known_hosts:
     name: "{{ item }}"
     key: "{{ lookup('pipe', 'ssh-keyscan -T 10 ' + item) }}"
     path: "/var/lib/postgresql/.ssh/known_hosts"
     state: present
   delegate_to: "{{ groups['repo_db_backups'][0] }}"
-  loop: 
-    - "{{ ansible_host }}"
-    - "{{ inventory_hostname }}"
+  loop: >-
+    {% set ns = namespace(hosts=[]) %}
+    {% for db in (groups['repo_psql'] | difference(groups['role_vm_template'] | default([]))) %}
+      {% set _ = ns.hosts.append(hostvars[db].ansible_host | default(db)) %}
+      {% set _ = ns.hosts.append(db) %}
+    {% endfor %}
+    {{ ns.hosts | unique }}
   become: yes
   become_user: postgres
 
