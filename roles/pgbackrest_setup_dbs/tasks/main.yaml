@@ -1,59 +1,29 @@
-- name: Ensure postgres user exists
-  user:
-    name: postgres
-    system: yes
-    shell: /bin/bash
-    create_home: yes
-
-- name: Get postgres user home directory
-  getent:
-    database: passwd
-    key: postgres
-
-- name: Ensure .ssh directory exists for postgres
+- name: Ensure pgBackRest configuration directory exists
   file:
-    path: "{{ ansible_facts.getent_passwd['postgres'][4] }}/.ssh"
+    path: /etc/pgbackrest
     state: directory
     owner: postgres
     group: postgres
-    mode: '0700'
-
-- name: Generate SSH key pair for postgres
-  openssh_keypair:
-    path: "{{ ansible_facts.getent_passwd['postgres'][4] }}/.ssh/id_rsa"
-    type: rsa
-    size: 4096
+    mode: '0750'
+    
+- name: Deploy pgbackrest configuration
+  template:
+    src: templates/pgbackrest.conf.j2
+    dest: /etc/pgbackrest/pgbackrest.conf
     owner: postgres
     group: postgres
-    mode: '0600'
+    mode: '0640'
 
-# --- BLOCK 1: Database Nodes Setup ---
-- block:
-    - name: Read backup repository public key
-      slurp:
-        src: /var/lib/postgresql/.ssh/id_rsa.pub
-      register: backup_repo_pubkey
-      delegate_to: "{{ groups['repo_db_backups'][0] }}"
-      run_once: yes
+- name: Read backup repository public key
+  slurp:
+    src: ~postgres/.ssh/id_rsa.pub
+  register: backup_repo_pubkey
+  delegate_to: db-backups
+  run_once: yes
 
-    - name: Authorize backup VM key on database nodes
-      authorized_key:
-        user: postgres
-        key: "{{ backup_repo_pubkey['content'] | b64decode }}"
-  when: inventory_hostname not in groups['repo_db_backups']
-
-# --- BLOCK 2: Backup Repository Setup ---
-- block:
-    - name: Read database node public keys
-      slurp:
-        src: "{{ ansible_facts.getent_passwd['postgres'][4] }}/.ssh/id_rsa.pub"
-      register: db_pubkeys
-      delegate_to: "{{ item }}"
-      loop: "{{ groups['env_dev:&repo_psql:!role_vm_template'] }}"
-
-    - name: Authorize database node keys on backup VM
-      authorized_key:
-        user: postgres
-        key: "{{ item['content'] | b64decode }}"
-      loop: "{{ db_pubkeys.results }}"
-  when: inventory_hostname in groups['repo_db_backups']
+- name: Authorize backup VM key on database nodes
+  authorized_key:
+    user: postgres
+    key: "{{ backup_repo_pubkey['content'] | b64decode }}"
+  delegate_to: "{{ item }}"
+  loop: "{{ ansible_play_hosts }}
