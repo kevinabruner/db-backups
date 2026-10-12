@@ -9,9 +9,8 @@ log-level-file=debug
 repo1-s3-region=ca-central-1
 
 [db]
-{% set target_hosts = groups['env_dev'] | intersect(groups['repo_psql']) %}
-{% for host in target_hosts %}
-pg{{ loop.index }}-path=/var/lib/postgresql/17/main
-pg{{ loop.index }}-host={{ hostvars[host]['ansible_host'] | default(host) }}
+{% for host in active_dbs %}
+pg{{ loop.index }}-path={{ hostvars[host].postgresql_data_dir | default('/var/lib/postgresql/17/main') }}
+pg{{ loop.index }}-host={{ hostvars[host].ansible_host | default(host) }}
 pg{{ loop.index }}-user=postgres
 {% endfor %}
