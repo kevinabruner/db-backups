@@ -12,3 +12,17 @@
     owner: postgres
     group: postgres
     mode: '0750'
+
+- name: Read database node public keys
+  slurp:
+    src: ~postgres/.ssh/id_rsa.pub
+  register: db_pubkeys
+  delegate_to: "{{ item }}"
+  loop: "{{ groups['env_dev:&repo_psql:!role_vm_template'] }}"
+
+- name: Authorize database node keys on backup VM
+  authorized_key:
+    user: postgres
+    key: "{{ item.ansible_facts.slurp_content | default(item['content']) | b64decode }}"
+  delegate_to: db-backups
+  loop: "{{ db_pubkeys.results }}"

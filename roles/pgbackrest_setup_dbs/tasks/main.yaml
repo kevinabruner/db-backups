@@ -13,3 +13,17 @@
     owner: postgres
     group: postgres
     mode: '0640'
+
+- name: Read backup repository public key
+  slurp:
+    src: ~postgres/.ssh/id_rsa.pub
+  register: backup_repo_pubkey
+  delegate_to: db-backups
+  run_once: yes
+
+- name: Authorize backup VM key on database nodes
+  authorized_key:
+    user: postgres
+    key: "{{ backup_repo_pubkey['content'] | b64decode }}"
+  delegate_to: "{{ item }}"
+  loop: "{{ groups['env_dev:&repo_psql:!role_vm_template'] }}"

@@ -3,6 +3,7 @@
   become: yes
   roles:
     - backup_packages
+    - backup_sshkeys
     - pgbackrest_setup_target
 
 - name: Configure pgBackRest on database nodes
@@ -10,4 +11,5 @@
   become: yes
   roles:
     - backup_packages
+    - backup_sshkeys
     - pgbackrest_setup_dbs
