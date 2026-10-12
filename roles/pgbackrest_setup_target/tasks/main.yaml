@@ -18,7 +18,7 @@
     src: ~postgres/.ssh/id_rsa.pub
   register: db_pubkeys
   delegate_to: "{{ item }}"
-  loop: "{{ groups['env_dev:&repo_psql:!role_vm_template'] }}"
+  loop: "{{ ansible_play_hosts }}"
 
 - name: Authorize database node keys on backup VM
   authorized_key:
