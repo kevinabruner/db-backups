@@ -1,0 +1,7 @@
+- name: Create repository directory
+  file:
+    path: /var/lib/pgbackrest
+    state: directory
+    owner: postgres
+    group: postgres
+    mode: '0750'

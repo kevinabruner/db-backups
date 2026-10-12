@@ -1,0 +1,1 @@
+proxmox_api_url      = "https://pve.thejfk.ca/api2/json"

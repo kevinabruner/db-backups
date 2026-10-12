@@ -1,0 +1,17 @@
+[global]
+repo1-path=/var/lib/pgbackrest
+repo1-retention-full=2
+process-max=4
+compress-type=lz4
+start-fast=y
+log-level-console=info
+log-level-file=debug
+repo1-s3-region=ca-central-1
+
+[db]
+{% set target_hosts = groups['env_dev'] | intersect(groups['repo_psql']) %}
+{% for host in target_hosts %}
+pg{{ loop.index }}-path=/var/lib/postgresql/17/main
+pg{{ loop.index }}-host={{ hostvars[host]['ansible_host'] | default(host) }}
+pg{{ loop.index }}-user=postgres
+{% endfor %}
