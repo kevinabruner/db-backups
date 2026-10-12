@@ -1,3 +1,10 @@
+- name: Ensure postgres user exists
+  user:
+    name: postgres
+    system: yes
+    shell: /bin/bash
+    create_home: yes    
+
 - name: Ensure .ssh directory exists for postgres
   file:
     path: ~postgres/.ssh
