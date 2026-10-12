@@ -1,18 +1,19 @@
-- name: Configure pgBackRest on all nodes 
-  hosts: repo_db_backups:!role_vm_template:env_dev:&repo_psql:!role_vm_template
+- name: Generate SSH keys 
+  hosts: localhost
   become: yes
   roles:
-    - backup_packages
-    - backup_sshkeys    
+    local_keygen
 
 - name: Configure pgBackRest on database nodes
   hosts: env_dev:&repo_psql:!role_vm_template
   become: yes
   roles:    
+    - backup_sshkeys
     - pgbackrest_setup_dbs
 
 - name: Configure pgBackRest repository host
   hosts: repo_db_backups:!role_vm_template
   become: yes
   roles:    
+    - backup_sshkeys
     - pgbackrest_setup_target

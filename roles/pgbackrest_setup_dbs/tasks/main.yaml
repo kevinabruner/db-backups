@@ -13,37 +13,6 @@
     group: postgres
     mode: '0700'
 
-# --- Run once on controller to generate the shared key ---
-- name: Ensure local temp directory exists for key generation
-  file:
-    path: /tmp/pgbackrest_keys
-    state: directory
-  delegate_to: localhost
-  run_once: yes
-
-- name: Generate shared SSH key pair on Ansible controller
-  openssh_keypair:
-    path: /tmp/pgbackrest_keys/id_rsa
-    type: rsa
-    size: 4096
-  delegate_to: localhost
-  run_once: yes
-
-- name: Read shared private key content
-  slurp:
-    src: /tmp/pgbackrest_keys/id_rsa
-  delegate_to: localhost
-  run_once: yes
-  register: shared_private_key
-
-- name: Read shared public key content
-  slurp:
-    src: /tmp/pgbackrest_keys/id_rsa.pub
-  delegate_to: localhost
-  run_once: yes
-  register: shared_public_key
-
-# --- Deploy to all target nodes ---
 - name: Deploy shared private key to all nodes
   copy:
     content: "{{ shared_private_key['content'] | b64decode }}"
