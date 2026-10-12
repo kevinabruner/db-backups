@@ -7,7 +7,7 @@
     mode: '0750'
 
 - name: Initialize pgBackRest backup stanza
-  command: pgbackrest --stanza=demo --log-level-console=info stanza-create
+  command: pgbackrest --stanza=db --log-level-console=info stanza-create
   become: yes
   become_user: postgres
   run_once: yes
