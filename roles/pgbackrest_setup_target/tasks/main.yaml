@@ -10,7 +10,12 @@
   become: yes
 
 - name: Initialize pgBackRest backup stanza
-  command: pgbackrest --stanza=db --log-level-console=info stanza-create
+  command: >
+    pgbackrest 
+    --stanza=db 
+    --log-level-console=info 
+    --ssh-option="-o StrictHostKeyChecking=accept-new" 
+    stanza-create
   become: yes
   become_user: postgres
   environment:
