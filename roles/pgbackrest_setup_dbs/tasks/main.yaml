@@ -26,4 +26,4 @@
     user: postgres
     key: "{{ backup_repo_pubkey['content'] | b64decode }}"
   delegate_to: "{{ item }}"
-  loop: "{{ groups['env_dev:&repo_psql:!role_vm_template'] }}"
+  loop: "{{ ansible_play_hosts }}"
