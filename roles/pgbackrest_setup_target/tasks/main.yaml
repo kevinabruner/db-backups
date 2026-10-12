@@ -9,6 +9,19 @@
   run_once: yes
   become: yes
 
+- name: Configure SSH client settings for postgres user
+  copy:
+    content: |
+      Host 192.168.*.*
+          HashKnownHosts no
+          StrictHostKeyChecking accept-new
+    dest: /var/lib/postgresql/.ssh/config
+    owner: postgres
+    group: postgres
+    mode: '0600'
+  delegate_to: "{{ groups['repo_db_backups'][0] }}"
+  become: yes
+
 - name: Add database hostnames to repository known_hosts
   shell: |
     key=$(ssh-keyscan -T 10 "{{ item }}" 2>/dev/null | grep -v '^#')
