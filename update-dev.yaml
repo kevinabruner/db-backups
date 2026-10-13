@@ -2,5 +2,4 @@
   hosts: env_dev:&repo_psql:!role_vm_template
   become: yes
   roles:    
-    - backup_sshkeys
     - pgbackrest_setup_db
