@@ -1,4 +1,4 @@
-- hosts: repo_psql:&env_dev:!role_vm_template
+- hosts: repo_db_backups
   become: yes
   roles:
     - role: backup_scheduler
