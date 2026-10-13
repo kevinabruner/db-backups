@@ -11,10 +11,10 @@
 
 - name: Populate repository known_hosts using native Ansible host key facts
   known_hosts:
-  name: "{{ hostvars[item].ansible_host | default(item) }}"
-  key: "{{ hostvars[item]['ansible_ssh_host_key_ed25519_public'] }}"
-  path: /var/lib/postgresql/.ssh/known_hosts
-  state: present
+    name: "{{ hostvars[item].ansible_host | default(item) }}"
+    key: "{{ hostvars[item]['ansible_ssh_host_key_ed25519_public'] }}"
+    path: /var/lib/postgresql/.ssh/known_hosts
+    state: present
   delegate_to: "{{ groups['repo_db_backups'][0] }}"
   loop: "{{ groups['repo_psql'] | difference(groups['role_vm_template'] | default([])) }}"
   become: yes
