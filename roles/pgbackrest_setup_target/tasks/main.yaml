@@ -9,20 +9,6 @@
   run_once: yes
   become: yes
 
-- name: Configure SSH client to automatically accept host keys
-  copy:
-    content: |
-      Host *
-          StrictHostKeyChecking accept-new
-          UserKnownHostsFile /home/postgres/.ssh/known_hosts
-    dest: /home/postgres/.ssh/config
-    owner: postgres
-    group: postgres
-    mode: '0600'
-  delegate_to: "{{ groups['repo_db_backups'][0] }}"
-  run_once: yes
-  become: yes
-
 - name: Initialize pgBackRest backup stanza
   command: pgbackrest --stanza=db --log-level-console=info stanza-create
   become: yes
