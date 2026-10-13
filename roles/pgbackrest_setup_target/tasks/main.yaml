@@ -1,47 +1,31 @@
-- name: Ensure postgres user .ssh directory exists with correct permissions
+- name: Ensure postgres user .ssh directory exists
   file:
-    path: /var/lib/postgresql/.ssh
-    state: directory
-    owner: postgres
-    group: postgres
-    mode: '0700'
+  path: /var/lib/postgresql/.ssh
+  state: directory
+  owner: postgres
+  group: postgres
+  mode: '0700'
   delegate_to: "{{ groups['repo_db_backups'][0] }}"
   run_once: yes
   become: yes
 
-- name: Ensure known_hosts file exists with correct permissions
-  copy:
-    content: ""
-    dest: /var/lib/postgresql/.ssh/known_hosts
-    owner: postgres
-    group: postgres
-    mode: '0600'
-    force: no
+- name: Populate repository known_hosts using native Ansible host key facts
+  known_hosts:
+  name: "{{ hostvars[item].ansible_host | default(item) }}"
+  key: "{{ hostvars[item]['ansible_ssh_host_key_ed25519_public'] }}"
+  path: /var/lib/postgresql/.ssh/known_hosts
+  state: present
   delegate_to: "{{ groups['repo_db_backups'][0] }}"
-  run_once: yes
+  loop: "{{ groups['repo_psql'] | difference(groups['role_vm_template'] | default([])) }}"
   become: yes
+  become_user: postgres
 
-- name: Configure SSH client to automatically accept and bypass key prompts
-  copy:
-    content: |
-      Host *
-          StrictHostKeyChecking no
-          UserKnownHostsFile /var/lib/postgresql/.ssh/known_hosts
-          LogLevel ERROR
-    dest: /var/lib/postgresql/.ssh/config
-    owner: postgres
-    group: postgres
-    mode: '0600'
-  delegate_to: "{{ groups['repo_db_backups'][0] }}"
-  run_once: yes
-  become: yes
-  
-- name: Initialize pgBackRest backup stanza
+- name: Initialize pgBackRest backup stanza (Idempotent)
   command: pgbackrest --stanza=db --log-level-console=info stanza-create
   become: yes
   become_user: postgres
   environment:
-    HOME: /var/lib/postgresql
+  HOME: /var/lib/postgresql
   run_once: yes
   delegate_to: "{{ groups['repo_db_backups'][0] }}"
   register: stanza_create
