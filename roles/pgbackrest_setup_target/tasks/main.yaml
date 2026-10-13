@@ -1,14 +1,3 @@
-- name: Ensure postgres user .ssh directory exists
-  file:
-    path: /home/postgres/.ssh
-    state: directory
-    owner: postgres
-    group: postgres
-    mode: '0700'
-  delegate_to: "{{ groups['repo_db_backups'][0] }}"
-  run_once: yes
-  become: yes
-
 - name: Initialize pgBackRest backup stanza
   command: pgbackrest --stanza=db --log-level-console=info stanza-create
   become: yes
