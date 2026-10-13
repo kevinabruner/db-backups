@@ -6,4 +6,4 @@
     group: postgres
     mode: '0640'
   vars:
-    active_dbs: "{{ groups['repo_psql'] | difference(groups['role_vm_template'] | default([])) }}"
+    active_dbs: "{{ (groups['repo_psql'] | difference(groups['role_vm_template'] | default([]))) | intersect(groups['env_dev']) }}"
