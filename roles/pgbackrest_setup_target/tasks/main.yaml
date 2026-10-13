@@ -25,7 +25,7 @@
   become: yes
   become_user: postgres
   environment:
-  HOME: /var/lib/postgresql
+    HOME: /var/lib/postgresql
   run_once: yes
   delegate_to: "{{ groups['repo_db_backups'][0] }}"
   register: stanza_create
