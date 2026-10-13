@@ -1,12 +1,12 @@
 - hosts: repo_psql:&env_dev
   become: yes
   roles:
-    - role: pgbackrest_scheduler
+    - role: backup_scheduler
       vars:
         pgbackrest_backup_type: "full"
         pgbackrest_timer_schedule: "Sun 02:00:00"
 
-    - role: pgbackrest_scheduler
+    - role: backup_scheduler
       vars:
         pgbackrest_backup_type: "incr"
         pgbackrest_timer_schedule: "Mon..Sat 02:00:00"
