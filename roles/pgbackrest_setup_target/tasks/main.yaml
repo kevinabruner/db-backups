@@ -10,23 +10,8 @@
   run_once: yes
   become: yes
 
-- name: Scan and add database host keys as postgres user
-  shell: |
-    ssh-keyscan -T 10 "{{ hostvars[item].ansible_host | default(item) }}" >> /var/lib/postgresql/.ssh/known_hosts 2>/dev/null
-    ssh-keyscan -T 10 "{{ item }}" >> /var/lib/postgresql/.ssh/known_hosts 2>/dev/null
-    sort -u /var/lib/postgresql/.ssh/known_hosts -o /var/lib/postgresql/.ssh/known_hosts
-  args:
-    executable: /bin/bash
-  delegate_to: "{{ groups['repo_db_backups'][0] }}"
-  loop: "{{ groups['repo_psql'] | difference(groups['role_vm_template'] | default([])) }}"
-  become: yes
-  become_user: postgres
-  environment:
-    HOME: /var/lib/postgresql
-  changed_when: true
-
-- name: Initialize pgBackRest backup stanza (Idempotent)
-  command: pgbackrest --stanza=db --log-level-console=info stanza-create
+- name: Initialize pgBackRest backup stanza locally (No Online SSH Check)
+  command: pgbackrest --stanza=db --log-level-console=info --no-online stanza-create
   become: yes
   become_user: postgres
   environment:
