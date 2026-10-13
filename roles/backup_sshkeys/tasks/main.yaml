@@ -12,7 +12,6 @@
     owner: postgres
     group: postgres
     mode: '0700'
-  run_once: yes
   become: yes
 
 - name: Deploy shared private key to all nodes
