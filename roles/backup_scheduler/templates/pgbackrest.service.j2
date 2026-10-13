@@ -1,0 +1,10 @@
+[Unit]
+Description=Run pgBackRest {{ pgbackrest_backup_type | capitalize }} Backup Schedule
+Requires=pgbackrest-{{ pgbackrest_backup_type }}.service
+
+[Timer]
+OnCalendar={{ pgbackrest_timer_schedule }}
+Persistent=true
+
+[Install]
+WantedBy=timers.target

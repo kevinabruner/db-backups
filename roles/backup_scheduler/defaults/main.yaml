@@ -1,0 +1,3 @@
+pgbackrest_stanza: "db"
+pgbackrest_backup_type: "full"
+pgbackrest_timer_schedule: "Sun 02:00:00"
