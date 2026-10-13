@@ -1,6 +1,6 @@
-- name: Ensure postgres user .ssh directory has strict 0700 permissions
+- name: Ensure postgres user .ssh directory exists
   file:
-    path: /var/lib/postgresql/.ssh
+    path: /home/postgres/.ssh
     state: directory
     owner: postgres
     group: postgres
@@ -9,14 +9,13 @@
   run_once: yes
   become: yes
 
-- name: Deploy secure SSH client configuration for postgres user
+- name: Configure SSH client to automatically accept host keys
   copy:
     content: |
       Host *
-          StrictHostKeyChecking no
-          UserKnownHostsFile /var/lib/postgresql/.ssh/known_hosts
-          LogLevel ERROR
-    dest: /var/lib/postgresql/.ssh/config
+          StrictHostKeyChecking accept-new
+          UserKnownHostsFile /home/postgres/.ssh/known_hosts
+    dest: /home/postgres/.ssh/config
     owner: postgres
     group: postgres
     mode: '0600'
@@ -24,24 +23,10 @@
   run_once: yes
   become: yes
 
-- name: Ensure known_hosts file exists with strict 0600 permissions
-  copy:
-    content: ""
-    dest: /var/lib/postgresql/.ssh/known_hosts
-    owner: postgres
-    group: postgres
-    mode: '0600'
-    force: no
-  delegate_to: "{{ groups['repo_db_backups'][0] }}"
-  run_once: yes
-  become: yes
-
-- name: Initialize pgBackRest backup stanza (Idempotent)
+- name: Initialize pgBackRest backup stanza
   command: pgbackrest --stanza=db --log-level-console=info stanza-create
   become: yes
   become_user: postgres
-  environment:
-    HOME: /var/lib/postgresql
   run_once: yes
   delegate_to: "{{ groups['repo_db_backups'][0] }}"
   register: stanza_create
