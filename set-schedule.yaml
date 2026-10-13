@@ -1,4 +1,4 @@
-- hosts: repo_db_backups
+- hosts: repo_db_backups:!role_vm_template
   become: yes
   roles:
     - role: backup_scheduler

@@ -13,4 +13,3 @@ repo1-s3-region=ca-central-1
 pg{{ loop.index }}-path={{ hostvars[host].postgresql_data_dir | default('/var/lib/postgresql/17/main') }}
 pg{{ loop.index }}-host={{ hostvars[host].ansible_host | default(host) }}
 pg{{ loop.index }}-user=postgres
-{% endfor %}
